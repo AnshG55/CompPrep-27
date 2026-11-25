@@ -1,8 +1,8 @@
 package first.robot;
 
 import first.robot.subsystems.drive.Drive;
-import first.robot.subsystems.drive.DriveCharacterization;
 import first.robot.subsystems.drive.DriveCommands;
+import first.robot.subsystems.elevator.Elevator;
 import org.wpilib.command3.Command;
 import org.wpilib.command3.button.CommandGamepad;
 import org.wpilib.driverstation.GenericHID.RumbleType;
@@ -38,7 +38,7 @@ public final class Controls {
 
   public static controlMode currentmode = controlMode.BACK; // Default Starts as Back
 
-  public static void bind(Drive drive) {
+  public static void bind(Drive drive, Elevator elevator) {
     CommandGamepad driver = new CommandGamepad(0);
     CommandGamepad operator = new CommandGamepad(1);
 
@@ -66,7 +66,9 @@ public final class Controls {
         DriveCommands.joystickDrive(
             drive, () -> -driver.getLeftY(), () -> -driver.getLeftX(), () -> -driver.getRightX()));
 
-    driver.faceDown().whileTrue(DriveCharacterization.squarePIDTune(drive));
+    // elevator.setDefaultCommand(elevator.hold());
+
+    driver.faceDown().whileTrue(elevator.setVoltage(3));
 
     // Bind Back commands
 

@@ -15,6 +15,10 @@ import first.robot.subsystems.drive.ModuleIO;
 import first.robot.subsystems.drive.ModuleIOTalonFX;
 import first.robot.subsystems.drive.ModuleIOTalonFXSim;
 import first.robot.subsystems.drive.SwerveDriveSim;
+import first.robot.subsystems.elevator.Elevator;
+import first.robot.subsystems.elevator.ElevatorIOTalonFX;
+import first.robot.subsystems.elevator.ElevatorIOTalonFXSim;
+import first.robot.subsystems.elevator.ElevatorSimulation;
 import first.robot.subsystems.vision.LimelightSim;
 import first.robot.subsystems.vision.Vision;
 import first.robot.subsystems.vision.VisionConstants;
@@ -38,6 +42,7 @@ import org.wpilib.command3.Command;
 public class RobotContainer {
   private final Drive drive;
   private final Vision vision;
+  private final Elevator elevator;
 
   // Only used in SIM. The first two are null and the list is empty otherwise.
   private final SimWorld simWorld;
@@ -71,6 +76,8 @@ public class RobotContainer {
                     VisionConstants.CAMERA_NAMES[1],
                     VisionConstants.ROBOT_TO_CAMERA[1],
                     drive::getRotation));
+
+        elevator = new Elevator(new ElevatorIOTalonFX());
       }
       case SIM -> {
         SignalLogger.enableAutoLogging(false);
@@ -105,6 +112,10 @@ public class RobotContainer {
                     VisionConstants.ROBOT_TO_CAMERA[1],
                     drive::getRotation));
 
+        ElevatorSimulation elevatorSimulation = new ElevatorSimulation();
+        simWorld.add("Elevator", elevatorSimulation);
+        elevator = new Elevator(new ElevatorIOTalonFXSim(elevatorSimulation));
+
         simWorld.start();
       }
       default -> {
@@ -123,10 +134,12 @@ public class RobotContainer {
                 this::yawVelocity,
                 new VisionIO() {},
                 new VisionIO() {});
+
+        elevator = null;
       }
     }
 
-    Controls.bind(drive);
+    Controls.bind(drive, elevator);
     configureDashboardButtons();
     configureAutos();
   }
@@ -161,6 +174,7 @@ public class RobotContainer {
   public void periodic() {
     drive.periodic();
     vision.periodic();
+    elevator.periodic();
 
     if (driveSim != null) {
       Logger.recordOutput("Sim/TruePose", driveSim.getTruePose());
